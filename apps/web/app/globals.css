@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink-950: #080c18;
+  --color-ink-900: #0e1425;
+  --color-ink-850: #121a2e;
+  --color-ink-800: #161e33;
+  --color-ink-700: #232d47;
+  --color-ink-600: #35405e;
+  --color-ink-400: #7b87a8;
+
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background:
+      radial-gradient(
+        ellipse 80% 60% at 50% -10%,
+        color-mix(in oklab, var(--color-brand-600) 22%, transparent),
+        transparent
+      ),
+      var(--color-ink-950);
+    color: #e8ecf7;
+    min-height: 100dvh;
+  }
+
+  /* The room code is read aloud and typed in — keep glyphs unambiguous. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.18em;
+  }
+}

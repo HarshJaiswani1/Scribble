@@ -1,0 +1,22 @@
+{
+  "name": "@scribble/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "test": "node test/lobby.integration.mjs && node test/sweep.integration.mjs && node test/game.integration.mjs",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@scribble/shared": "*",
+    "socket.io": "^4.8.1",
+    "tsx": "^4.19.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "socket.io-client": "^4.8.3"
+  }
+}

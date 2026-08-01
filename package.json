@@ -1,0 +1,24 @@
+{
+  "name": "scribble",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/check-ports.mjs && concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",
+    "check-ports": "node scripts/check-ports.mjs",
+    "dev:server": "npm run dev -w @scribble/server",
+    "dev:web": "npm run dev -w @scribble/web",
+    "build": "npm run build -w @scribble/web",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
