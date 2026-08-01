@@ -108,6 +108,12 @@ function Line({ message }: { message: FeedMessage }) {
     case 'leave':
       return <span className="text-xs text-rose-300/80">{message.text}</span>
 
+    case 'like':
+      return <span className="text-xs text-emerald-300/80">👍 {message.text}</span>
+
+    case 'dislike':
+      return <span className="text-xs text-rose-300/70">👎 {message.text}</span>
+
     // Both of these are sent to one player only, never the room.
     case 'close':
       return <span className="text-amber-300">{message.text}</span>

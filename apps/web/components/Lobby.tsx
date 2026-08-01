@@ -8,6 +8,7 @@ import { useAppStore, useIsHost } from '@/lib/store'
 import Chat from './Chat'
 import PlayerList from './PlayerList'
 import SettingsPanel from './SettingsPanel'
+import VoteKickBanner from './VoteKickBanner'
 import { Button, ErrorText, Panel } from './ui'
 
 export default function Lobby({ onLeave }: { onLeave: () => void }) {
@@ -74,6 +75,8 @@ export default function Lobby({ onLeave }: { onLeave: () => void }) {
           </Button>
         </div>
       </header>
+
+      {snapshot.voteKick && <VoteKickBanner />}
 
       <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,20rem)_1fr]">
         <PlayerList />

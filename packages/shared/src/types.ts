@@ -41,6 +41,8 @@ export type MessageKind =
   | 'close'
   /** Private warning, e.g. the drawer nearly said the word out loud. */
   | 'warning'
+  | 'like'
+  | 'dislike'
 
 export interface FeedMessage {
   id: string
@@ -105,8 +107,18 @@ export interface RoomSnapshot {
   phaseDurationMs: number | null
   /** Populated during 'round-end' and 'game-end'. */
   roundResult: RoundResult | null
+  /** Present whenever a kick vote is in flight, in any phase including the lobby. */
+  voteKick: VoteKickState | null
   /** Server epoch ms at snapshot time, so clients can derive a clock offset. */
   serverTime: number
+}
+
+export interface VoteKickState {
+  targetId: string
+  votes: number
+  required: number
+  /** Server epoch ms the vote expires, for a client-side countdown. */
+  endsAt: number
 }
 
 export type Result<T> =

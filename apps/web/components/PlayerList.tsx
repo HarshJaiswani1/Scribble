@@ -4,7 +4,13 @@ import { getSocket } from '@/lib/socket'
 import { useAppStore, useIsHost } from '@/lib/store'
 import { Panel } from './ui'
 
-export default function PlayerList({ compact = false }: { compact?: boolean }) {
+export default function PlayerList({
+  compact = false,
+  className = '',
+}: {
+  compact?: boolean
+  className?: string
+}) {
   const snapshot = useAppStore((s) => s.snapshot)
   const selfId = useAppStore((s) => s.selfId)
   const isHost = useIsHost()
@@ -25,8 +31,15 @@ export default function PlayerList({ compact = false }: { compact?: boolean }) {
     })
   }
 
+  function voteKick(playerId: string) {
+    getSocket().emit('player:vote-kick-start', { playerId }, () => {
+      // Failure (a vote already running, too few players) shows up via
+      // VoteKickBanner staying absent — nothing local to roll back.
+    })
+  }
+
   return (
-    <Panel className="flex flex-col overflow-hidden">
+    <Panel className={`flex flex-col overflow-hidden ${className}`}>
       <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
         <h2 className="text-sm font-bold">Players</h2>
         <span className="text-xs text-ink-400">
@@ -34,7 +47,7 @@ export default function PlayerList({ compact = false }: { compact?: boolean }) {
         </span>
       </div>
 
-      <ul className="flex flex-col divide-y divide-white/5">
+      <ul className="flex min-h-0 flex-1 flex-col divide-y divide-white/5 overflow-y-auto">
         {players.map((player, index) => (
           <li
             key={player.id}
@@ -75,6 +88,19 @@ export default function PlayerList({ compact = false }: { compact?: boolean }) {
                       : 'Ready'}
               </span>
             </div>
+
+            {player.id !== selfId &&
+              player.connected &&
+              !snapshot.voteKick && (
+                <button
+                  onClick={() => voteKick(player.id)}
+                  aria-label={`Start a vote to kick ${player.nickname}`}
+                  title={`Vote to kick ${player.nickname}`}
+                  className="rounded-lg px-1.5 py-1 text-xs text-ink-400/70 transition hover:bg-amber-500/15 hover:text-amber-300"
+                >
+                  🗳️
+                </button>
+              )}
 
             {isHost && player.id !== selfId && !compact && (
               <button

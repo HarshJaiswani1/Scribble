@@ -6,6 +6,7 @@ import {
   drawAppendSchema,
   drawBeginSchema,
   drawEndSchema,
+  drawReactSchema,
   playerIdSchema,
   roomCreateSchema,
   roomJoinSchema,
@@ -24,11 +25,13 @@ import {
   chooseWord,
   handleChat,
   handleRosterChange,
+  reactToDrawing,
   resetToLobby,
   startGame,
 } from './game'
 import type { Room } from './rooms'
 import { fail, ok, parse, RateLimiter, respond } from './util'
+import { castVoteKick, reevaluateVoteKick, startVoteKick } from './votekick'
 
 export function registerHandlers(ctx: GameContext, socket: AppSocket): void {
   const { io, store } = ctx
@@ -88,6 +91,7 @@ export function registerHandlers(ctx: GameContext, socket: AppSocket): void {
       mode === 'leave' ? `${nickname} left` : `${nickname} lost connection`,
     )
     broadcastState(ctx, room)
+    reevaluateVoteKick(ctx, room)
     // A departure can end a turn or abort the game entirely.
     handleRosterChange(ctx, room)
   }
@@ -377,8 +381,43 @@ export function registerHandlers(ctx: GameContext, socket: AppSocket): void {
     feed(ctx, room, 'leave', `${target.nickname} was removed`)
     broadcastState(ctx, room)
     respond(ack, ok(null))
+    reevaluateVoteKick(ctx, room)
     // Removing the drawer, or the last guesser, changes the turn.
     handleRosterChange(ctx, room)
+  })
+
+  socket.on('player:vote-kick-start', (payload, ack) => {
+    const seat = currentPlayer()
+    if (!seat) {
+      respond(ack, fail('You are not in a room'))
+      return
+    }
+
+    const parsed = parse(playerIdSchema, payload)
+    if (!parsed.ok) {
+      respond(ack, fail(parsed.error))
+      return
+    }
+
+    const target = seat.room.players.get(parsed.data.playerId)
+    if (!target) {
+      respond(ack, fail('That player is already gone'))
+      return
+    }
+
+    const result = startVoteKick(ctx, seat.room, seat.player, target)
+    respond(ack, result.ok ? ok(null) : fail(result.error))
+  })
+
+  socket.on('player:vote-kick-cast', (ack) => {
+    const seat = currentPlayer()
+    if (!seat) {
+      respond(ack, fail('You are not in a room'))
+      return
+    }
+
+    const result = castVoteKick(ctx, seat.room, seat.player)
+    respond(ack, result.ok ? ok(null) : fail(result.error))
   })
 
   socket.on('word:choose', (payload, ack) => {
@@ -511,6 +550,37 @@ export function registerHandlers(ctx: GameContext, socket: AppSocket): void {
     if (!parsed.ok) return
 
     handleChat(ctx, seat.room, seat.player, parsed.data.text)
+  })
+
+  socket.on('draw:react', (payload, ack) => {
+    const seat = currentPlayer()
+    if (!seat) {
+      respond(ack, fail('You are not in a room'))
+      return
+    }
+
+    const { room, player } = seat
+    if (room.phase !== 'drawing') {
+      respond(ack, fail('No drawing to react to right now'))
+      return
+    }
+    if (room.drawerId === player.id) {
+      respond(ack, fail('You cannot react to your own drawing'))
+      return
+    }
+    if (room.reactions.has(player.id)) {
+      respond(ack, fail('You already reacted this turn'))
+      return
+    }
+
+    const parsed = parse(drawReactSchema, payload)
+    if (!parsed.ok) {
+      respond(ack, fail(parsed.error))
+      return
+    }
+
+    respond(ack, ok(null))
+    reactToDrawing(ctx, room, player, parsed.data.reaction)
   })
 
   socket.on('ping:time', (ack) => {

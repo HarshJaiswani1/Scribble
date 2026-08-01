@@ -7,8 +7,10 @@ import { useAppStore, useIsDrawer, useIsHost } from '@/lib/store'
 import Canvas from './Canvas'
 import Chat from './Chat'
 import PlayerList from './PlayerList'
+import Reactions from './Reactions'
 import RoundOverlay from './RoundOverlay'
 import Toolbar from './Toolbar'
+import VoteKickBanner from './VoteKickBanner'
 import WordBar from './WordBar'
 import WordPicker from './WordPicker'
 import { Button } from './ui'
@@ -77,22 +79,29 @@ export default function GameRoom({ onLeave }: { onLeave: () => void }) {
         </div>
       </header>
 
+      {snapshot.voteKick && <VoteKickBanner />}
+
       <WordBar />
 
-      <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,17rem)]">
-        <PlayerList compact />
-
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-1 flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,17rem)]">
+        <div className="flex flex-col gap-3 lg:order-2">
           <div className="relative">
             <Canvas canDraw={canDraw} />
             {showPicker && <WordPicker />}
             {showOverlay && <RoundOverlay />}
+            {!isDrawer && snapshot.phase === 'drawing' && <Reactions />}
           </div>
 
           {canDraw && <Toolbar />}
         </div>
 
-        <Chat className="max-h-[32rem] lg:max-h-none" />
+        {/* Side by side on mobile (matches the reference layout); `lg:contents`
+            drops this wrapper's own box so PlayerList/Chat become direct grid
+            items again at desktop width, landing in their usual columns. */}
+        <div className="grid grid-cols-2 gap-3 lg:contents">
+          <PlayerList compact className="max-h-80 lg:order-1 lg:max-h-none" />
+          <Chat className="max-h-80 lg:order-3 lg:max-h-none" />
+        </div>
       </div>
     </main>
   )

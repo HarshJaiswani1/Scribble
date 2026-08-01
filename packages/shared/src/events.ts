@@ -102,6 +102,10 @@ export const chatSchema = z.object({
   text: z.string().trim().min(1).max(CHAT_MAX_LENGTH),
 })
 
+export const drawReactSchema = z.object({
+  reaction: z.enum(['like', 'dislike']),
+})
+
 export type RoomCreateInput = z.input<typeof roomCreateSchema>
 export type RoomJoinInput = z.input<typeof roomJoinSchema>
 export type SettingsUpdateInput = z.input<typeof settingsUpdateSchema>
@@ -111,6 +115,7 @@ export type DrawBeginInput = z.input<typeof drawBeginSchema>
 export type DrawAppendInput = z.input<typeof drawAppendSchema>
 export type DrawEndInput = z.input<typeof drawEndSchema>
 export type ChatInput = z.input<typeof chatSchema>
+export type DrawReactInput = z.input<typeof drawReactSchema>
 
 export interface ClientToServerEvents {
   'room:create': (payload: RoomCreateInput, ack: Ack<JoinResult>) => void
@@ -121,6 +126,9 @@ export interface ClientToServerEvents {
   /** Host bails out of a running game, returning everyone to the lobby. */
   'game:abort': (ack: Ack<null>) => void
   'player:kick': (payload: PlayerIdInput, ack: Ack<null>) => void
+  /** Any player can start or join a majority vote to remove another player. */
+  'player:vote-kick-start': (payload: PlayerIdInput, ack: Ack<null>) => void
+  'player:vote-kick-cast': (ack: Ack<null>) => void
   /** Round-trip used once on connect to measure clock offset. */
   'ping:time': (ack: Ack<{ serverTime: number }>) => void
 
@@ -135,6 +143,9 @@ export interface ClientToServerEvents {
   'draw:clear': () => void
 
   'chat:message': (payload: ChatInput) => void
+
+  /** Non-drawers only, once per turn — the drawer cannot react to their own work. */
+  'draw:react': (payload: DrawReactInput, ack: Ack<null>) => void
 }
 
 export interface ServerToClientEvents {

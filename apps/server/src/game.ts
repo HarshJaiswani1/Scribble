@@ -92,6 +92,7 @@ function resetTurnState(room: Room): void {
   room.roundDeltas = new Map()
   room.strokes = []
   room.pointsUsed = 0
+  room.reactions = new Map()
   for (const player of room.players.values()) player.hasGuessed = false
 }
 
@@ -257,6 +258,27 @@ function scheduleHints(
     }, at)
     room.hintTimers.push(timer)
   })
+}
+
+// ---------------------------------------------------------------------------
+// Reactions
+// ---------------------------------------------------------------------------
+
+/** Records a like/dislike on the current drawing. Caller has already checked eligibility. */
+export function reactToDrawing(
+  ctx: GameContext,
+  room: Room,
+  player: ServerPlayer,
+  reaction: 'like' | 'dislike',
+): void {
+  room.reactions.set(player.id, reaction)
+  feed(
+    ctx,
+    room,
+    reaction,
+    `${player.nickname} ${reaction === 'like' ? 'liked' : 'disliked'} the drawing!`,
+    player,
+  )
 }
 
 // ---------------------------------------------------------------------------

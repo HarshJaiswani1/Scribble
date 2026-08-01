@@ -4,6 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getSocket } from './socket'
 import { clearSeat, loadNickname, loadSeat, saveNickname, saveSeat } from './session'
 import { board } from './drawing'
+import {
+  playCorrectGuessChime,
+  playGameEndChime,
+  playNewTurnChime,
+  playRoundEndChime,
+} from './sound'
 import { useAppStore } from './store'
 
 export type JoinState =
@@ -123,10 +129,21 @@ export function useRoom(code: string) {
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('room:state', (snapshot) => {
+      const prevPhase = useAppStore.getState().snapshot?.phase
       useAppStore.getState().setSnapshot(snapshot)
+
+      // Skip the very first snapshot a client ever sees (join / reconnect) —
+      // otherwise landing mid-game fires a cue for a transition that never
+      // happened locally.
+      if (prevPhase && snapshot.phase !== prevPhase) {
+        if (snapshot.phase === 'word-select') playNewTurnChime()
+        else if (snapshot.phase === 'round-end') playRoundEndChime()
+        else if (snapshot.phase === 'game-end') playGameEndChime()
+      }
     })
     socket.on('feed:message', (message) => {
       useAppStore.getState().addMessage(message)
+      if (message.kind === 'correct') playCorrectGuessChime()
     })
     socket.on('room:closed', (reason) => {
       // The seat token is deliberately left in place: another tab may share it,

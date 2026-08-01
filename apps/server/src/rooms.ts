@@ -12,6 +12,7 @@ import {
   type RoomSnapshot,
   type RoundResult,
   type Stroke,
+  type VoteKickState,
 } from '@scribble/shared'
 
 export interface ServerPlayer {
@@ -29,6 +30,15 @@ export interface ServerPlayer {
   joinedAt: number
 }
 
+/** An in-flight majority vote to remove a player, live in any phase. */
+export interface VoteKick {
+  targetId: string
+  yesVoters: Set<string>
+  required: number
+  endsAt: number
+  timer: NodeJS.Timeout | null
+}
+
 export interface Room {
   code: string
   hostId: string | null
@@ -37,6 +47,7 @@ export interface Room {
   players: Map<string, ServerPlayer>
   /** Join order, which doubles as turn order once the game starts. */
   turnOrder: string[]
+  voteKick: VoteKick | null
 
   // --- game state -----------------------------------------------------------
   round: number
@@ -56,6 +67,8 @@ export interface Room {
   /** Words already played this game, so a game doesn't repeat itself. */
   usedWords: Set<string>
   roundResult: RoundResult | null
+  /** Reactions to the current drawing, one per player, cleared every turn. */
+  reactions: Map<string, 'like' | 'dislike'>
 
   // --- canvas ---------------------------------------------------------------
   strokes: Stroke[]
@@ -144,6 +157,7 @@ export class RoomStore {
       settings: { ...DEFAULT_SETTINGS, ...overrides },
       players: new Map(),
       turnOrder: [],
+      voteKick: null,
 
       round: 0,
       turnQueue: [],
@@ -155,6 +169,7 @@ export class RoomStore {
       roundDeltas: new Map(),
       usedWords: new Set(),
       roundResult: null,
+      reactions: new Map(),
 
       strokes: [],
       pointsUsed: 0,
@@ -331,6 +346,17 @@ export class RoomStore {
     return result
   }
 
+  private toVoteKickState(room: Room): VoteKickState | null {
+    const vote = room.voteKick
+    if (!vote) return null
+    return {
+      targetId: vote.targetId,
+      votes: vote.yesVoters.size,
+      required: vote.required,
+      endsAt: vote.endsAt,
+    }
+  }
+
   toPublicPlayer(room: Room, player: ServerPlayer): PublicPlayer {
     return {
       id: player.id,
@@ -364,6 +390,7 @@ export class RoomStore {
       endsAt: room.endsAt,
       phaseDurationMs: room.phaseDurationMs,
       roundResult: room.roundResult,
+      voteKick: this.toVoteKickState(room),
       serverTime: Date.now(),
     }
   }
