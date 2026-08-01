@@ -13,12 +13,6 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  // Without this, focusing the chat input pans the whole page up behind the
-  // on-screen keyboard instead of shrinking `dvh` — pushing the canvas out of
-  // view. This makes the keyboard shrink the layout viewport instead, so the
-  // `shrink-0` canvas stays put and only the flexible chat/player area gives
-  // up space.
-  interactiveWidget: 'resizes-content',
 }
 
 export default function RootLayout({

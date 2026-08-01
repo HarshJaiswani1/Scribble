@@ -69,7 +69,7 @@ export default function Chat({ className = '' }: { className?: string }) {
 
       <div className="border-t border-white/8 p-2">
         <input
-          className="w-full rounded-xl border border-white/10 bg-ink-850 px-3 py-2.5 text-sm outline-none transition-colors placeholder:text-ink-400/60 focus:border-brand-500"
+          className="w-full rounded-xl border border-white/10 bg-ink-850 px-3 py-2.5 text-sm text-slate-100 outline-none transition-colors placeholder:text-ink-400/60 focus:border-brand-500"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
