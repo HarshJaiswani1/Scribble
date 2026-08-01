@@ -28,7 +28,7 @@ export default function RoomClient({ code }: { code: string }) {
   // The phase is the single switch between the two screens, so a mid-game
   // joiner and a reconnecting player land in the right place automatically.
   if (snapshot.phase === 'lobby') return <Lobby onLeave={leave} />
-  return <GameRoom onLeave={leave} />
+  return <GameRoom />
 }
 
 function Centered({ children }: { children: React.ReactNode }) {

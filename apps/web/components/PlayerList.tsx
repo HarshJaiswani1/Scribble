@@ -39,8 +39,8 @@ export default function PlayerList({
   }
 
   return (
-    <Panel className={`flex flex-col overflow-hidden ${className}`}>
-      <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
+    <Panel className={`flex min-h-0 flex-col overflow-hidden ${className}`}>
+      <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
         <h2 className="text-sm font-bold">Players</h2>
         <span className="text-xs text-ink-400">
           {snapshot.players.length} / {snapshot.settings.maxPlayers}
@@ -51,19 +51,23 @@ export default function PlayerList({
         {players.map((player, index) => (
           <li
             key={player.id}
-            className={`group flex items-center gap-2.5 px-4 py-2.5 ${
+            className={`group flex items-center gap-2 px-3 py-1.5 ${
               player.connected ? '' : 'opacity-45'
             } ${player.hasGuessed ? 'bg-emerald-500/8' : ''}`}
           >
-            <span className="w-4 text-xs font-semibold text-ink-400">
-              {index + 1}
-            </span>
+            {!compact && (
+              <span className="w-4 text-xs font-semibold text-ink-400">
+                {index + 1}
+              </span>
+            )}
 
-            <span
-              aria-hidden
-              className="size-7 shrink-0 rounded-full border-2 border-white/10"
-              style={{ backgroundColor: player.color }}
-            />
+            {!compact && (
+              <span
+                aria-hidden
+                className="size-7 shrink-0 rounded-full border-2 border-white/10"
+                style={{ backgroundColor: player.color }}
+              />
+            )}
 
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="flex items-center gap-1.5 truncate text-sm font-semibold">
@@ -71,21 +75,23 @@ export default function PlayerList({
                 {player.id === selfId && (
                   <span className="text-xs font-normal text-brand-300">you</span>
                 )}
-                {player.isDrawing && <span title="Drawing">✏️</span>}
-                {player.hasGuessed && (
+                {!compact && player.isDrawing && <span title="Drawing">✏️</span>}
+                {!compact && player.hasGuessed && (
                   <span title="Guessed it" className="text-emerald-300">
                     ✓
                   </span>
                 )}
               </span>
               <span className="text-xs text-ink-400">
-                {!player.connected
-                  ? 'Disconnected'
-                  : inGame
-                    ? `${player.score} pts`
-                    : player.isHost
-                      ? 'Host'
-                      : 'Ready'}
+                {compact
+                  ? `${player.score} pts`
+                  : !player.connected
+                    ? 'Disconnected'
+                    : inGame
+                      ? `${player.score} pts`
+                      : player.isHost
+                        ? 'Host'
+                        : 'Ready'}
               </span>
             </div>
 
